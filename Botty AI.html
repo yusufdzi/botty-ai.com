@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Botty AI - Chat</title>
+  <style>
+    body {
+      background: #eef1f5;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 36px;
+      color: #333;
+    }
+
+    #chat-container {
+      width: 90%;
+      max-width: 700px;
+      margin: 30px auto;
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      padding: 20px;
+      height: 500px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      margin: 10px 0;
+      max-width: 80%;
+      padding: 12px 18px;
+      border-radius: 20px;
+      line-height: 1.4;
+      font-size: 16px;
+      white-space: pre-wrap;
+    }
+
+    .user {
+      background-color: #d1e7ff;
+      align-self: flex-end;
+      margin-left: auto;
+    }
+
+    .bot {
+      background-color: #f1f0f0;
+      margin-right: auto;
+    }
+
+    form {
+      display: flex;
+      justify-content: center;
+      margin: 20px auto;
+      max-width: 700px;
+    }
+
+    input[type="search"] {
+      padding: 15px;
+      width: 70%;
+      border: none;
+      border-radius: 30px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      font-size: 16px;
+      outline: none;
+    }
+
+    button {
+      padding: 15px 25px;
+      margin-left: 10px;
+      border: none;
+      background-color: #4285f4;
+      color: white;
+      font-size: 16px;
+      border-radius: 30px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #3071e8;
+    }
+
+    .bot-buttons {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .bot-buttons button {
+      font-size: 14px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Botty AI</h1>
+
+<div id="chat-container" role="log" aria-live="polite"></div>
+
+<form onsubmit="senden(); return false;">
+  <input type="search" id="suchfeld" placeholder="Frag mich etwas..." autocomplete="off">
+  <button type="submit">Senden</button>
+</form>
+
+<script>
+  function scrollToBottom() {
+    const container = document.getElementById('chat-container');
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function nachrichtAnzeigen(text, typ, isHTML = false) {
+    const container = document.getElementById('chat-container');
+    const div = document.createElement('div');
+    div.className = `message ${typ}`;
+    if (isHTML) {
+      div.innerHTML = text;
+    } else {
+      div.innerText = text;
+    }
+    container.appendChild(div);
+    scrollToBottom();
+  }
+
+  function showTypingAnimation() {
+    const typingDiv = document.createElement('div');
+    typingDiv.className = "message bot";
+    typingDiv.id = "typing";
+    typingDiv.innerText = "Botty AI schreibt...";
+    document.getElementById("chat-container").appendChild(typingDiv);
+    scrollToBottom();
+  }
+
+  function removeTypingAnimation() {
+    const typing = document.getElementById("typing");
+    if (typing) typing.remove();
+  }
+
+  function levenshtein(a, b) {
+    const matrix = Array.from({ length: b.length + 1 }, (_, i) => [i]);
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
+          );
+        }
+      }
+    }
+    return matrix[b.length][a.length];
+  }
+
+  function senden() {
+    const input = document.getElementById('suchfeld');
+    const frage = input.value.trim().toLowerCase();
+    if (!frage) return;
+
+    nachrichtAnzeigen(frage, "user");
+    input.value = '';
+
+    const datenbank = {
+      "katze": "Katzen sind süße, flauschige Haustiere.",
+      "hund": "Hunde sind treue Begleiter und super verspielt.",
+      "elefant": "Der Elefant ist das größte Landtier der Welt.",
+      "löwe": "Löwen sind majestätische Raubkatzen.",
+      "pinguin": "Pinguine leben in kalten Regionen und watscheln süß.",
+      "pferd": "Pferde sind elegante Tiere, oft zum Reiten genutzt.",
+      "affe": "Affen sind schlaue Tiere und uns Menschen sehr ähnlich.",
+      "hallo": "Hallo! Wie kann ich dir helfen?",
+      "wie geht es dir": "Mir geht's gut, danke der Nachfrage!",
+      "was kannst du": "Ich kann Fragen beantworten, Informationen geben und mehr!",
+      "wie spät ist es": "Schau am besten auf deine Uhr :)",
+      "wie ist das wetter": "Kommt drauf an, wo du bist!",
+      "wo wohnst du": "Ich lebe in der Cloud.",
+      "was machst du": "Ich warte darauf, dir zu helfen!",
+      "wer bist du": "Ich bin ein Chatbot – dein Helfer im Alltag!",
+      "was ist liebe": "Eine sehr schöne und komplexe Emotion.",
+      "was ist 2 plus 2": "Das ergibt 4.",
+      "wie heißt du": "Ich heiße Botty AI!",
+      "magst du musik": "Ja, Musik ist toll – auch wenn ich sie nicht hören kann!",
+      "was ist dein lieblingsessen": "Bits und Bytes :)",
+      "wie alt bist du": "Ich bin zeitlos – aber immer aktuell.",
+      "was ist das internet": "Ein weltweites Netzwerk für Information und Kommunikation.",
+      "was ist google": "Eine Suchmaschine – du kennst sie bestimmt!",
+      "was ist eine ki": "Eine künstliche Intelligenz, wie ich eine bin!"
+    };
+
+    showTypingAnimation();
+
+    setTimeout(() => {
+      removeTypingAnimation();
+
+      if (datenbank[frage]) {
+        nachrichtAnzeigen(datenbank[frage], "bot");
+      } else {
+        let ähnlichsterBegriff = null;
+        let geringsteDistanz = Infinity;
+
+        for (const key in datenbank) {
+          const distanz = levenshtein(frage, key);
+          if (distanz < geringsteDistanz) {
+            geringsteDistanz = distanz;
+            ähnlichsterBegriff = key;
+          }
+        }
+
+        if (geringsteDistanz <= 2) {
+          nachrichtAnzeigen(`Meintest du: "${ähnlichsterBegriff}"?\n${datenbank[ähnlichsterBegriff]}`, "bot");
+        } else {
+          const html = `
+            Ich bin mir nicht sicher. Du kannst hier nachsehen:
+            <div class="bot-buttons">
+              <button onclick="window.open('https://chat.openai.com/?query=${encodeURIComponent(frage)}', '_blank')" style="background:#10a37f;color:white;">ChatGPT öffnen</button>
+              <button onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(frage)}', '_blank')" style="background:#db4437;color:white;">Google-Suche</button>
+            </div>
+          `;
+          nachrichtAnzeigen(html, "bot", true);
+        }
+      }
+    }, 1000);
+  }
+</script>
+
+</body>
+</html>
