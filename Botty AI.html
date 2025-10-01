@@ -3,56 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Botty AI - Chat</title>
+  <title>Botty-Suche</title>
   <style>
     body {
-      background: #eef1f5;
+      background: #121212;
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
+      color: white;
+      transition: background 0.3s, color 0.3s;
     }
 
     h1 {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 36px;
-      color: #333;
-    }
+  text-align: center;
+  margin-top: 30px;
+  font-size: 36px;
+  padding-top: 60px; /* NEU: Abstand nach oben */
+}
 
-    #chat-container {
-      width: 90%;
-      max-width: 700px;
-      margin: 30px auto;
-      background: #fff;
-      border-radius: 15px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      padding: 20px;
-      height: 500px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .message {
-      margin: 10px 0;
-      max-width: 80%;
-      padding: 12px 18px;
-      border-radius: 20px;
-      line-height: 1.4;
-      font-size: 16px;
-      white-space: pre-wrap;
-    }
-
-    .user {
-      background-color: #d1e7ff;
-      align-self: flex-end;
-      margin-left: auto;
-    }
-
-    .bot {
-      background-color: #f1f0f0;
-      margin-right: auto;
-    }
 
     form {
       display: flex;
@@ -66,7 +34,6 @@
       width: 70%;
       border: none;
       border-radius: 30px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
       font-size: 16px;
       outline: none;
     }
@@ -75,7 +42,7 @@
       padding: 15px 25px;
       margin-left: 10px;
       border: none;
-      background-color: #4285f4;
+      background-color: #0066ff;
       color: white;
       font-size: 16px;
       border-radius: 30px;
@@ -83,158 +50,382 @@
     }
 
     button:hover {
-      background-color: #3071e8;
+      background-color: #0044aa;
     }
 
-    .bot-buttons {
-      margin-top: 10px;
-      display: flex;
-      gap: 10px;
+    #results {
+      margin: 30px auto;
+      max-width: 800px;
+      padding: 0 20px;
+      list-style: none;
     }
 
-    .bot-buttons button {
+    .result-item {
+      background-color: #1e1e1e;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      transition: 0.3s;
+    }
+
+    .result-item:hover {
+      background-color: #2a2a2a;
+    }
+
+    .result-item a {
+      color: #4ea3ff;
+      font-size: 18px;
+      text-decoration: none;
+    }
+
+    .result-item a:hover {
+      text-decoration: underline;
+    }
+
+    .result-url {
       font-size: 14px;
-      padding: 8px 16px;
-      border-radius: 20px;
-      cursor: pointer;
+      color: #bbb;
+    }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.settings-button {
+  position: static; /* NICHT mehr fixed! */
+  padding: 10px 15px;
+  font-size: 18px;
+}
+
+
+    .result-description {
+      margin-top: 5px;
+      color: #ddd;
+      font-size: 15px;
+    }
+
+    .settings-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #0066ff;
+      color: white;
       border: none;
+      padding: 10px 15px;
+      border-radius: 100px;
+      cursor: pointer;
+      z-index: 1000;
+    }
+
+    .settings-panel {
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      background: #1e1e1e;
+      color: white;
+      border: 1px solid #444;
+      padding: 15px;
+      border-radius: 10px;
+      display: none;
+      z-index: 999;
+    }
+
+    .settings-panel label {
+      display: block;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    .light-theme {
+      background: #ffffff00;
+      color: #111;
+    }
+
+    .light-theme .result-item {
+      background-color: #ffffff;
+      color: #ffffff;
+    }
+
+    .light-theme .result-item a {
+      color: #0066cc;
+    }
+
+.light-theme input[type="search"]::placeholder {
+  color: #ffffff; 
+  opacity: 1; 
+}
+
+
+    .light-theme .result-url {
+      color: #444;
+    }
+
+    .light-theme .result-description {
+      color: #333;
+    }
+
+    .light-theme input[type="search"] {
+      background: #2bb1ff;
+      color: #000000;
+    }
+
+    .light-theme button {
+      background-color: #006eff;
+      color: white;
+    }
+
+    .light-theme .settings-panel {
+      background: #fff;
+      color: #000;
+      border: 1px solid #aaa;
     }
   </style>
 </head>
 <body>
 
-<h1>Botty AI</h1>
+  <h1>Suchen mit Botty</h1>
 
-<div id="chat-container" role="log" aria-live="polite"></div>
 
-<form onsubmit="senden(); return false;">
-  <input type="search" id="suchfeld" placeholder="Frag mich etwas..." autocomplete="off">
-  <button type="submit">Senden</button>
-</form>
+  <button class="settings-button" onclick="toggleSettings()">Einstellungen</button>
+  <div class="settings-panel" id="settingsPanel">
+    <label>
+      <input type="radio" name="theme" value="dark" checked onchange="setTheme('dark')">
+      Dunkles Design
+    </label>
+    <label>
+      <input type="radio" name="theme" value="light" onchange="setTheme('light')">
+      Helles Design
+    </label>
+  </div>
 
-<script>
-  function scrollToBottom() {
-    const container = document.getElementById('chat-container');
-    container.scrollTop = container.scrollHeight;
-  }
+  <form onsubmit="handleSearch(); return false;">
+    <input type="search" id="suchfeld" placeholder="Suche etwas..." autocomplete="off">
+    <button type="submit">Suchen</button>
+  </form>
 
-  function nachrichtAnzeigen(text, typ, isHTML = false) {
-    const container = document.getElementById('chat-container');
-    const div = document.createElement('div');
-    div.className = `message ${typ}`;
-    if (isHTML) {
-      div.innerHTML = text;
-    } else {
-      div.innerText = text;
+  <ul id="results"></ul>
+
+  <script>
+
+    function toggleSettings() {
+      const panel = document.getElementById("settingsPanel");
+      panel.style.display = panel.style.display === "block" ? "none" : "block";
     }
-    container.appendChild(div);
-    scrollToBottom();
-  }
 
-  function showTypingAnimation() {
-    const typingDiv = document.createElement('div');
-    typingDiv.className = "message bot";
-    typingDiv.id = "typing";
-    typingDiv.innerText = "Botty AI schreibt...";
-    document.getElementById("chat-container").appendChild(typingDiv);
-    scrollToBottom();
-  }
+    function setTheme(theme) {
+      if (theme === 'light') {
+        document.body.classList.add('light-theme');
+      } else {
+        document.body.classList.remove('light-theme');
+      }
+    }
 
-  function removeTypingAnimation() {
-    const typing = document.getElementById("typing");
-    if (typing) typing.remove();
-  }
+ 
+        const searchData = [
+      { name: "Google", url: "https://www.google.com", description: "Suchmaschine" },
+      { name: "YouTube", url: "https://www.youtube.com", description: "Videos weltweit" },
+      { name: "Facebook", url: "https://www.facebook.com", description: "Soziales Netzwerk" },
+      { name: "Instagram", url: "https://www.instagram.com", description: "Fotos & Stories" },
+      { name: "X", url: "https://www.x.com", description: "Früher Twitter" },
+      { name: "T‑Online", url: "https://www.t‑online.de", description: "Nachrichten & Portal" },
+{ name: "Bild", url: "https://www.bild.de", description: "Boulevard & News" },
+{ name: "Spiegel", url: "https://www.spiegel.de", description: "Nachrichten & Magazin" },
+{ name: "Tagesschau", url: "https://www.tagesschau.de", description: "Öffentlich‑rechtliche Nachrichten" },
+{ name: "Focus", url: "https://www.focus.de", description: "News & Magazin" },
+{ name: "n‑tv", url: "https://www.n‑tv.de", description: "Nachrichten & Wirtschaft" },
+{ name: "FAZ", url: "https://www.faz.net", description: "Frankfurter Allgemeine Zeitung" },
+{ name: "Süddeutsche", url: "https://www.sueddeutsche.de", description: "Nachrichten & Magazin" },
+{ name: "Welt", url: "https://www.welt.de", description: "Nachrichten & Politik" },
+{ name: "Zeit Online", url: "https://www.zeit.de", description: "Analyse & Hintergrund" },
+{ name: "Handelsblatt", url: "https://www.handelsblatt.com", description: "Wirtschaft & Finanzen" },
+{ name: "Heise Online", url: "https://www.heise.de", description: "IT & Technik News" },
+{ name: "Chip", url: "https://www.chip.de", description: "Computer & Technik" },
+{ name: "ComputerBase", url: "https://www.computerbase.de", description: "Technik & Tests" },
+{ name: "Golem", url: "https://www.golem.de", description: "IT & Digitales" },
+{ name: "Zeit Online", url: "https://www.zeit.de", description: "Nachrichten & Analyse" },
+{ name: "Übermedien", url: "https://www.uebermedien.de", description: "Medienkritik & Kommentar" },
+{ name: "Netzwelt", url: "https://www.netzwelt.de", description: "Technik & Trends" },
+{ name: "Stern", url: "https://www.stern.de", description: "Magazin & News" },
+{ name: "GEO", url: "https://www.geo.de", description: "Wissen & Fotografie" },
+{ name: "Kicker", url: "https://www.kicker.de", description: "Sportnachrichten" },
+{ name: "Transfermarkt", url: "https://www.transfermarkt.de", description: "Sport & Fußball Statistiken" },
+{ name: "Motorsport‑Magazin", url: "https://www.motorsport-magazin.com", description: "Rennsport & News" },
+{ name: "Süddeutsche Zeitung", url: "https://www.sueddeutsche.de", description: "Nachrichten & Regionales" },
+{ name: "Tag24", url: "https://www.tag24.de", description: "Regionale Nachrichten" },
+{ name: "Morgenpost", url: "https://www.morgenpost.de", description: "Regional & News" },
+{ name: "Spiegel Politik", url: "https://www.spiegel.de/politik", description: "Politik News" },
+{ name: "ZDF", url: "https://www.zdf.de", description: "Öffentlich‑rechtliches Fernsehen & News" },
+{ name: "ARD", url: "https://www.ard.de", description: "Öffentlich‑rechtliches Fernsehen & Portal" },
+{ name: "Deutschlandfunk", url: "https://www.deutschlandfunk.de", description: "Nachrichten & Radio" },
+{ name: "MDR", url: "https://www.mdr.de", description: "Regional & Nachrichten" },
+{ name: "NRW‑Nachrichten", url: "https://www.nrw‑nachrichten.de", description: "Landesnachrichten NRW" },
+{ name: "Focus Online", url: "https://www.focus.de", description: "News & Magazin" },
+{ name: "Welt Online", url: "https://www.welt.de", description: "Nachrichten & Politik" },
+{ name: "Kurier", url: "https://www.kurier.at", description: "Österreichische Nachrichten (deutschsprachig)" },
+{ name: "ORF", url: "https://www.orf.at", description: "Österreichisches Rundfunkportal (deutschsprachig)" },
+{ name: "ServusTV", url: "https://www.servustv.com", description: "Medien & Fernsehen im DACH‑Raum" },
+{ name: "Wetter.com", url: "https://www.wetter.com", description: "Wetter & Prognosen" },
+{ name: "WetterOnline", url: "https://www.wetteronline.de", description: "Wetter & Vorhersagen" },
+{ name: "Bahn.de", url: "https://www.bahn.de", description: "Zugfahrten & Reisemöglichkeiten" },
+{ name: "FlixBus", url: "https://www.flixbus.de", description: "Fernbus & Reisen" },
+{ name: "DB Navigator", url: "https://www.bahn.de", description: "Bahn & Mobilität" },
+{ name: "Immowelt", url: "https://www.immowelt.de", description: "Immobilienmarkt" },
+{ name: "Immonet", url: "https://www.immonet.de", description: "Immobilien & Angebote" },
+{ name: "AutoScout24", url: "https://www.autoscout24.de", description: "Fahrzeuge & Autoanzeigen" },
+{ name: "Mobile.de", url: "https://www.mobile.de", description: "Autoanzeigen & Fahrzeuge" },
+{ name: "Check24", url: "https://www.check24.de", description: "Vergleiche & Finanzen" },
+{ name: "Idealo", url: "https://www.idealo.de", description: "Preisvergleich" },
+{ name: "Geizhalz", url: "https://www.geizhals.de", description: "Preisvergleich & Angebote" },
+{ name: "T‑Online Magazin", url: "https://www.t‑online.de", description: "Magazin & Themenportal" },
+{ name: "Heise", url: "https://www.heise.de", description: "IT & Technik News" },
+{ name: "Golem", url: "https://www.golem.de", description: "Digitales & Technik" },
+{ name: "Netzwelt", url: "https://www.netzwelt.de", description: "Technik & Trends" },
+{ name: "Telepolis", url: "https://www.heise.de/tp", description: "Netzpolitik & Gesellschaft" },
+{ name: "Greenpeace Deutschland", url: "https://www.greenpeace.de", description: "Umwelt & Aktivismus" },
+{ name: "BUND", url: "https://www.bund.net", description: "Naturschutz in Deutschland" },
+{ name: "ADAC", url: "https://www.adac.de", description: "Verkehr & Mobilität" },
+{ name: "DRK", url: "https://www.drk.de", description: "Rotes Kreuz Deutschland" },
+{ name: "Deutsche Bahn", url: "https://www.bahn.de", description: "Zug & Mobilität" },
+{ name: "Lidl", url: "https://www.lidl.de", description: "Einzelhandel & Angebote" },
+{ name: "Aldi Süd", url: "https://www.aldi-sued.de", description: "Discount & Angebote" },
+{ name: "Rewe", url: "https://www.rewe.de", description: "Lebensmittel & Supermarkt" },
+{ name: "Edeka", url: "https://www.edeka.de", description: "Lebensmittel & Filialen" },
+{ name: "Drogerie Müller", url: "https://www.mueller.de", description: "Drogerie & Produkte" },
+{ name: "Rossmann", url: "https://www.rossmann.de", description: "Drogerie & Angebote" },
+{ name: "DM", url: "https://www.dm.de", description: "Drogerie & Produkte" },
+{ name: "REWE Lieferservice", url: "https://www.rewe.de/lieferservice", description: "Lebensmittel Online" },
+{ name: "Zalando", url: "https://www.zalando.de", description: "Mode & Schuhe Online" },
+{ name: "Otto", url: "https://www.otto.de", description: "Online Handel & Versand" },
+{ name: "About You", url: "https://www.aboutyou.de", description: "Mode & Lifestyle" },
+{ name: "ZDF", url: "https://www.zdf.de", description: "Fernsehen & News" },
+{ name: "ARD", url: "https://www.ard.de", description: "Fernsehen & Portal" },
+{ name: "3sat", url: "https://www.3sat.de", description: "Kultur & Fernsehen" },
+{ name: "Arte", url: "https://www.arte.tv", description: "Kultur & TV" },
+{ name: "MDR", url: "https://www.mdr.de", description: "Regional & Fernsehen" },
+{ name: "WDR", url: "https://www1.wdr.de", description: "Regionales & Medien" },
+{ name: "RBB", url: "https://www.rbb-online.de", description: "Berlin/Brandenburg & Medien" },
+{ name: "NDR", url: "https://www.ndr.de", description: "Norddeutschland & Medien" },
+{ name: "BR", url: "https://www.br.de", description: "Bayern & Medien" },
+{ name: "SWR", url: "https://www.swr.de", description: "Südwest & Medien" },
+{ name: "SR", url: "https://www.sr.de", description: "Saarland & Medien" },
+{ name: "SRF", url: "https://www.srf.ch", description: "Schweizer Medien (deutschsprachig)" },
+{ name: "Österreichisches Parlament", url: "https://www.parlament.gv.at", description: "Österreichisches Parlament (deutschsprachig)" },
+      { name: "WhatsApp", url: "https://www.whatsapp.com", description: "Messenger-App" },
+      { name: "Wikipedia", url: "https://www.wikipedia.org", description: "Freies Nachschlagewerk" },
+      { name: "Amazon", url: "https://www.amazon.com", description: "Online-Shopping" },
+      { name: "Yahoo", url: "https://www.yahoo.com", description: "News & Mail" },
+      { name: "Yandex", url: "https://www.yandex.ru", description: "Russische Suchmaschine" },
+      { name: "Baidu", url: "https://www.baidu.com", description: "Chinesische Suchmaschine" },
+      { name: "TikTok", url: "https://www.tiktok.com", description: "Kurzvideos weltweit" },
+      { name: "Reddit", url: "https://www.reddit.com", description: "Diskussionen & News" },
+      { name: "Netflix", url: "https://www.netflix.com", description: "Filme & Serien" },
+      { name: "LinkedIn", url: "https://www.linkedin.com", description: "Business-Netzwerk" },
+      { name: "Twitch", url: "https://www.twitch.tv", description: "Live-Streaming" },
+      { name: "Microsoft", url: "https://www.microsoft.com", description: "Technologie & Software" },
+      { name: "Bing", url: "https://www.bing.com", description: "Microsoft-Suche" },
+      { name: "DuckDuckGo", url: "https://duckduckgo.com", description: "Private Suche" },
+      { name: "Office", url: "https://www.office.com", description: "Microsoft Office Online" },
+      { name: "OpenAI", url: "https://www.openai.com", description: "KI & Forschung" },
+      { name: "Live.com", url: "https://www.live.com", description: "Microsoft Mail" },
+      { name: "VK", url: "https://vk.com", description: "Russisches Netzwerk" },
+      { name: "Snapchat", url: "https://www.snapchat.com", description: "Kurzlebige Bilder" },
+      { name: "Pinterest", url: "https://www.pinterest.com", description: "Inspiration & Bilder" },
+      { name: "Slack", url: "https://slack.com", description: "Team-Kommunikation" },
+      { name: "Spotify", url: "https://www.spotify.com", description: "Musik-Streaming" },
+      { name: "eBay", url: "https://www.ebay.com", description: "Online-Auktionen" },
+      { name: "Tumblr", url: "https://www.tumblr.com", description: "Blogging-Plattform" },
+      { name: "WordPress", url: "https://wordpress.com", description: "Webseiten erstellen" },
+      { name: "Stack Overflow", url: "https://stackoverflow.com", description: "Programmierhilfe" },
+      { name: "GitHub", url: "https://github.com", description: "Code-Hosting" },
+      { name: "Salesforce", url: "https://www.salesforce.com", description: "CRM Software" },
+      { name: "Zoom", url: "https://zoom.us", description: "Video-Konferenzen" },
+      { name: "CNN", url: "https://www.cnn.com", description: "Nachrichten weltweit" },
+      { name: "BBC", url: "https://www.bbc.com", description: "Britische Nachrichten" },
+      { name: "New York Times", url: "https://www.nytimes.com", description: "US-Zeitung" },
+      { name: "Spiegel", url: "https://www.spiegel.de", description: "Deutsche Nachrichten" },
+      { name: "Amashop24", url: "https://www.amashop24.de", description: "Bohrvorichtungen" },
+      { name: "DW", url: "https://www.dw.com", description: "Deutsche Welle" },
+      { name: "Heise", url: "https://www.heise.de", description: "Tech-News" },
+      { name: "t-online", url: "https://www.t-online.de", description: "Nachrichten & Mail" },
+      { name: "Zeit", url: "https://www.zeit.de", description: "Nachrichten & Analyse" },
+      { name: "Chefkoch", url: "https://www.chefkoch.de", description: "Rezepte & Kochen" },
+      { name: "Chatgpt", url: "https://www.chatgpt.com", description: "KI und Forschung" },
+      { name: "Xing", url: "https://www.xing.com", description: "Karrierenetzwerk" },
+      { name: "GMX", url: "https://www.gmx.net", description: "Mail & Cloud" },
+      { name: "Web.de", url: "https://www.web.de", description: "E-Mail & News" }
+    ];
 
-  function levenshtein(a, b) {
-    const matrix = Array.from({ length: b.length + 1 }, (_, i) => [i]);
-    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
 
-    for (let i = 1; i <= b.length; i++) {
-      for (let j = 1; j <= a.length; j++) {
-        if (b.charAt(i - 1) === a.charAt(j - 1)) {
-          matrix[i][j] = matrix[i - 1][j - 1];
-        } else {
-          matrix[i][j] = Math.min(
-            matrix[i - 1][j - 1] + 1,
-            matrix[i][j - 1] + 1,
-            matrix[i - 1][j] + 1
+    function levenshtein(a, b) {
+      const dp = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
+      for (let i = 0; i <= a.length; i++) dp[i][0] = i;
+      for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+
+      for (let i = 1; i <= a.length; i++) {
+        for (let j = 1; j <= b.length; j++) {
+          dp[i][j] = Math.min(
+            dp[i - 1][j] + 1,
+            dp[i][j - 1] + 1,
+            dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
           );
         }
       }
+      return dp[a.length][b.length];
     }
-    return matrix[b.length][a.length];
-  }
 
-  function senden() {
-    const input = document.getElementById('suchfeld');
-    const frage = input.value.trim().toLowerCase();
-    if (!frage) return;
+    function handleSearch() {
+      const query = document.getElementById("suchfeld").value.trim().toLowerCase();
+      const resultsList = document.getElementById("results");
+      resultsList.innerHTML = "";
 
-    nachrichtAnzeigen(frage, "user");
-    input.value = '';
-
-    const datenbank = {
-      "katze": "Katzen sind süße, flauschige Haustiere.",
-      "hund": "Hunde sind treue Begleiter und super verspielt.",
-      "elefant": "Der Elefant ist das größte Landtier der Welt.",
-      "löwe": "Löwen sind majestätische Raubkatzen.",
-      "pinguin": "Pinguine leben in kalten Regionen und watscheln süß.",
-      "pferd": "Pferde sind elegante Tiere, oft zum Reiten genutzt.",
-      "affe": "Affen sind schlaue Tiere und uns Menschen sehr ähnlich.",
-      "hallo": "Hallo! Wie kann ich dir helfen?",
-      "wie geht es dir": "Mir geht's gut, danke der Nachfrage!",
-      "was kannst du": "Ich kann Fragen beantworten, Informationen geben und mehr!",
-      "wie spät ist es": "Schau am besten auf deine Uhr :)",
-      "wie ist das wetter": "Kommt drauf an, wo du bist!",
-      "wo wohnst du": "Ich lebe in der Cloud.",
-      "was machst du": "Ich warte darauf, dir zu helfen!",
-      "wer bist du": "Ich bin ein Chatbot – dein Helfer im Alltag!",
-      "was ist liebe": "Eine sehr schöne und komplexe Emotion.",
-      "was ist 2 plus 2": "Das ergibt 4.",
-      "wie heißt du": "Ich heiße Botty AI!",
-      "magst du musik": "Ja, Musik ist toll – auch wenn ich sie nicht hören kann!",
-      "was ist dein lieblingsessen": "Bits und Bytes :)",
-      "wie alt bist du": "Ich bin zeitlos – aber immer aktuell.",
-      "was ist das internet": "Ein weltweites Netzwerk für Information und Kommunikation.",
-      "was ist google": "Eine Suchmaschine – du kennst sie bestimmt!",
-      "was ist eine ki": "Eine künstliche Intelligenz, wie ich eine bin!"
-    };
-
-    showTypingAnimation();
-
-    setTimeout(() => {
-      removeTypingAnimation();
-
-      if (datenbank[frage]) {
-        nachrichtAnzeigen(datenbank[frage], "bot");
-      } else {
-        let ähnlichsterBegriff = null;
-        let geringsteDistanz = Infinity;
-
-        for (const key in datenbank) {
-          const distanz = levenshtein(frage, key);
-          if (distanz < geringsteDistanz) {
-            geringsteDistanz = distanz;
-            ähnlichsterBegriff = key;
-          }
-        }
-
-        if (geringsteDistanz <= 2) {
-          nachrichtAnzeigen(`Meintest du: "${ähnlichsterBegriff}"?\n${datenbank[ähnlichsterBegriff]}`, "bot");
-        } else {
-          const html = `
-            Ich bin mir nicht sicher. Du kannst hier nachsehen:
-            <div class="bot-buttons">
-              <button onclick="window.open('https://chat.openai.com/?query=${encodeURIComponent(frage)}', '_blank')" style="background:#10a37f;color:white;">ChatGPT öffnen</button>
-              <button onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(frage)}', '_blank')" style="background:#db4437;color:white;">Google-Suche</button>
-            </div>
-          `;
-          nachrichtAnzeigen(html, "bot", true);
-        }
+      if (query.match(/\.(de|com|org|net)$/)) {
+        window.location.href = "https://" + query;
+        return;
       }
-    }, 1000);
-  }
-</script>
+
+      const maxDistance = 2;
+      const filtered = searchData.filter(item => {
+        const name = item.name.toLowerCase();
+        return (
+          name.includes(query) ||
+          levenshtein(name, query) <= maxDistance
+        );
+      });
+
+      if (filtered.length === 0) {
+        const li = document.createElement("li");
+        li.textContent = "Keine Ergebnisse gefunden.";
+        resultsList.appendChild(li);
+      }
+
+      filtered.forEach(item => {
+        const li = document.createElement("li");
+        li.classList.add("result-item");
+
+        const a = document.createElement("a");
+        a.href = item.url;
+        a.target = "_blank";
+        a.textContent = item.name;
+
+        const url = document.createElement("div");
+        url.classList.add("result-url");
+        url.textContent = item.url;
+
+        const desc = document.createElement("div");
+        desc.classList.add("result-description");
+        desc.textContent = item.description;
+
+        li.appendChild(a);
+        li.appendChild(url);
+        li.appendChild(desc);
+        resultsList.appendChild(li);
+      });
+    }
+  </script>
 
 </body>
 </html>
