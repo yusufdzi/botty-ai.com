@@ -401,71 +401,71 @@
       return dp[a.length][b.length];
     }
 
-    function handleSearch() {
-      const query = document.getElementById("suchfeld").value.trim().toLowerCase();
-      const resultsList = document.getElementById("results");
-      resultsList.innerHTML = "";
+function handleSearch() {
+  const query = document.getElementById("suchfeld").value.trim().toLowerCase();
+  const resultsList = document.getElementById("results");
+  resultsList.innerHTML = "";
 
-      if (query.match(/\.(de|com|org|net)$/)) {
-        window.location.href = "https://" + query;
-        return;
-      }
+  if (query.match(/\.(de|com|org|net)$/)) {
+    window.location.href = "https://" + query;
+    return;
+  }
 
-      const maxDistance = 2;
-      const filtered = searchData.filter(item => {
-        const name = item.name.toLowerCase();
-        return (
-          name.includes(query) ||
-          levenshtein(name, query) <= maxDistance
-        );
-      });
+  const maxDistance = 2;
+  const filtered = searchData.filter(item => {
+    const name = item.name.toLowerCase();
+    return (
+      name.includes(query) ||
+      levenshtein(name, query) <= maxDistance
+    );
+  });
 
+  if (filtered.length === 0) {
+    const li = document.createElement("li");
+    li.classList.add("no-results");
+    li.textContent = "Keine Ergebnisse gefunden.";
 
-if (filtered.length === 0) {
-  const li = document.createElement("li");
-  li.classList.add("no-results");
-  li.textContent = "Keine Ergebnisse gefunden.";
+    const googleBtn = document.createElement("button");
+    googleBtn.textContent = "Stattdessen bei Google suchen";
+    googleBtn.className = "google-button";
+    googleBtn.onclick = function () {
+      const googleQuery = encodeURIComponent(query);
+      window.open(`https://www.google.com/search?q=${googleQuery}`, "_blank");
+    };
 
-  const googleBtn = document.createElement("button");
-  googleBtn.textContent = "Stattdessen bei Google suchen";
-  googleBtn.className = "google-button";
-  googleBtn.onclick = function () {
-    const googleQuery = encodeURIComponent(query);
-    window.open(`https://www.google.com/search?q=${googleQuery}`, "_blank");
-  };
+    resultsList.appendChild(li);
+    resultsList.appendChild(googleBtn);
+    return;
+  }
 
-  resultsList.appendChild(li);
-  resultsList.appendChild(googleBtn);
-  return;
+  // ❌ DIESE ZEILE NICHT MEHR!
+  // resultsList.appendChild(googleBtn);
+
+  filtered.forEach(item => {
+    const li = document.createElement("li");
+    li.classList.add("result-item");
+
+    const a = document.createElement("a");
+    a.href = item.url;
+    a.target = "_blank";
+    a.textContent = item.name;
+
+    const url = document.createElement("div");
+    url.classList.add("result-url");
+    url.textContent = item.url;
+
+    const desc = document.createElement("div");
+    desc.classList.add("result-description");
+    desc.textContent = item.description;
+
+    li.appendChild(a);
+    li.appendChild(url);
+    li.appendChild(desc);
+    resultsList.appendChild(li);
+  });
 }
+   
 
-
-resultsList.appendChild(googleBtn);
-
-
-      filtered.forEach(item => {
-        const li = document.createElement("li");
-        li.classList.add("result-item");
-
-        const a = document.createElement("a");
-        a.href = item.url;
-        a.target = "_blank";
-        a.textContent = item.name;
-
-        const url = document.createElement("div");
-        url.classList.add("result-url");
-        url.textContent = item.url;
-
-        const desc = document.createElement("div");
-        desc.classList.add("result-description");
-        desc.textContent = item.description;
-
-        li.appendChild(a);
-        li.appendChild(url);
-        li.appendChild(desc);
-        resultsList.appendChild(li);
-      });
-    }
   </script>
 
 </body>
