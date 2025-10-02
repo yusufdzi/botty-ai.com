@@ -15,10 +15,12 @@
     }
 
     h1 {
-      text-align: center;
-      margin-top: 30px;
-      font-size: 36px;
-    }
+  text-align: center;
+  margin-top: 30px;
+  font-size: 36px;
+  padding-top: 60px;
+}
+
 
     form {
       display: flex;
@@ -85,6 +87,21 @@
       color: #bbb;
     }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.settings-button {
+  position: static;
+  padding: 10px 15px;
+  font-size: 18px;
+}
+
+
     .result-description {
       margin-top: 5px;
       color: #ddd;
@@ -103,6 +120,30 @@
       cursor: pointer;
       z-index: 1000;
     }
+
+.no-results {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 18px;
+  color: #ccc;
+}
+
+.google-button {
+  display: block;
+  margin: 10px auto;
+  background-color: #4285F4;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+
+.google-button:hover {
+  background-color: #3367d6;
+}
+
 
     .settings-panel {
       position: fixed;
@@ -130,7 +171,7 @@
 
     .light-theme .result-item {
       background-color: #ffffff;
-      color: #000;
+      color: #ffffff;
     }
 
     .light-theme .result-item a {
@@ -177,11 +218,11 @@
   <div class="settings-panel" id="settingsPanel">
     <label>
       <input type="radio" name="theme" value="dark" checked onchange="setTheme('dark')">
-      Dunkles Thema
+      Dunkles Design
     </label>
     <label>
       <input type="radio" name="theme" value="light" onchange="setTheme('light')">
-      Helles Thema
+      Helles Design
     </label>
   </div>
 
@@ -379,11 +420,28 @@
         );
       });
 
-      if (filtered.length === 0) {
-        const li = document.createElement("li");
-        li.textContent = "Keine Ergebnisse gefunden.";
-        resultsList.appendChild(li);
-      }
+
+if (filtered.length === 0) {
+  const li = document.createElement("li");
+  li.classList.add("no-results");
+  li.textContent = "Keine Ergebnisse gefunden.";
+
+  const googleBtn = document.createElement("button");
+  googleBtn.textContent = "Stattdessen bei Google suchen";
+  googleBtn.className = "google-button";
+  googleBtn.onclick = function () {
+    const googleQuery = encodeURIComponent(query);
+    window.open(`https://www.google.com/search?q=${googleQuery}`, "_blank");
+  };
+
+  resultsList.appendChild(li);
+  resultsList.appendChild(googleBtn);
+  return;
+}
+
+
+resultsList.appendChild(googleBtn);
+
 
       filtered.forEach(item => {
         const li = document.createElement("li");
