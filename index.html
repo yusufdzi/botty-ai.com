@@ -131,7 +131,7 @@
 .google-button {
   display: block;
   margin: 10px auto;
-  background-color: #4285F4;
+  background-color: #0044ff;
   color: white;
   padding: 10px 20px;
   border-radius: 25px;
@@ -207,6 +207,22 @@
       color: #000;
       border: 1px solid #aaa;
     }
+
+
+.light-theme .no-results {
+  color: #111; 
+}
+
+.light-theme .google-button {
+  background-color: #0044ff;  
+  color: #fff;           
+}
+
+.light-theme .google-button:hover {
+  background-color: #444;  
+}
+
+
   </style>
 </head>
 <body>
@@ -438,8 +454,7 @@ function handleSearch() {
     return;
   }
 
-  // ❌ DIESE ZEILE NICHT MEHR!
-  // resultsList.appendChild(googleBtn);
+
 
   filtered.forEach(item => {
     const li = document.createElement("li");
