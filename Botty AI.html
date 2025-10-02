@@ -121,6 +121,30 @@
       z-index: 1000;
     }
 
+.no-results {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 18px;
+  color: #ccc;
+}
+
+.google-button {
+  display: block;
+  margin: 10px auto;
+  background-color: #4285F4;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+
+.google-button:hover {
+  background-color: #3367d6;
+}
+
+
     .settings-panel {
       position: fixed;
       top: 60px;
@@ -190,7 +214,7 @@
   <h1>Suchen mit Botty</h1>
 
 
-  <button class="settings-button" onclick="toggleSettings()">⚙️</button>
+  <button class="settings-button" onclick="toggleSettings()">Einstellungen</button>
   <div class="settings-panel" id="settingsPanel">
     <label>
       <input type="radio" name="theme" value="dark" checked onchange="setTheme('dark')">
@@ -396,11 +420,28 @@
         );
       });
 
-      if (filtered.length === 0) {
-        const li = document.createElement("li");
-        li.textContent = "Keine Ergebnisse gefunden.";
-        resultsList.appendChild(li);
-      }
+
+if (filtered.length === 0) {
+  const li = document.createElement("li");
+  li.classList.add("no-results");
+  li.textContent = "Keine Ergebnisse gefunden.";
+
+  const googleBtn = document.createElement("button");
+  googleBtn.textContent = "Stattdessen bei Google suchen";
+  googleBtn.className = "google-button";
+  googleBtn.onclick = function () {
+    const googleQuery = encodeURIComponent(query);
+    window.open(`https://www.google.com/search?q=${googleQuery}`, "_blank");
+  };
+
+  resultsList.appendChild(li);
+  resultsList.appendChild(googleBtn);
+  return;
+}
+
+
+resultsList.appendChild(googleBtn);
+
 
       filtered.forEach(item => {
         const li = document.createElement("li");
@@ -429,4 +470,3 @@
 
 </body>
 </html>
-
